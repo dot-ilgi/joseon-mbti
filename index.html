@@ -565,6 +565,7 @@ function blocked(x,y){const x0=Math.floor((x-5)/T),x1=Math.floor((x+4.99)/T),y0=
 function inputVec(){let vx=0,vy=0,m=0;if(joyVec){vx=joyVec.x;vy=joyVec.y;m=joyVec.m;}else{held.forEach(d=>{vx+=DV[d][0];vy+=DV[d][1];});if(vx||vy)m=1;}
   const h0=Math.hypot(vx,vy);if(!h0)return [0,0,0];vx/=h0;vy/=h0;if(Math.abs(vx)<.3)vx=0;if(Math.abs(vy)<.3)vy=0;const h=Math.hypot(vx,vy);if(!h)return [0,0,0];return [vx/h,vy/h,m];}
 const $=id=>document.getElementById(id);
+const track=(path,title)=>{try{if(window.goatcounter&&window.goatcounter.count)window.goatcounter.count({path,title,event:true});}catch(_){}};
 function hud(){const h=$('hud');if(sc===L)h.innerHTML='<b>性情樓</b> 성정루';else if(gateOpen)h.innerHTML='<b>북쪽 성문</b>이 열렸소';else h.innerHTML='만난 이 <b>'+met+'</b> / 12';}
 
 /* ---------- 8비트 소리 ---------- */
@@ -639,7 +640,7 @@ function action(){if(state==='talk'){advance();return;}if(state!=='walk')return;
   openDialog(n,lines,()=>{n.dir='down';checkGate();});}
 function checkGate(){if(met<QNPCS.length||gateOpen)return;setTimeout(()=>openDialog({name:'파발꾼',spec:MESSENGER},[
   {text:'이랴! 이랴! 파발이오, 파발!'},{text:'그대가 열두 사람에게 남긴 대답이 모두 모였소. 굳게 닫혀 있던 북쪽 성문이 방금 열렸다오.'},
-  {text:'성문 너머 성정루에서 그대의 교지가 기다리고 있소. 큰길을 따라 북쪽으로 가시오!'}],()=>{gateOpen=true;setGate(true);hud();chime();}),300);}
+  {text:'성문 너머 성정루에서 그대의 교지가 기다리고 있소. 큰길을 따라 북쪽으로 가시오!'}],()=>{gateOpen=true;setGate(true);hud();chime();track('gate-open','열두 명 모두 답함');}),300);}
 
 /* ---------- 장면 전환 ---------- */
 let fade=null,fadeV=0;
@@ -655,6 +656,7 @@ function showResult(){state='result';const type=AX.map(([a,b])=>SC[a]>=SC[b]?a:b
   $('rDesc').textContent=r[2];$('rGood').textContent=r[3];$('rBad').textContent=r[4];$('rMate').textContent=r[5]+' · '+TYPES[r[5]][0];
   const bars=$('rBars');bars.innerHTML='';AX.forEach(([a,b,la,lb])=>{const tot=SC[a]+SC[b]||1;const pa=Math.round(SC[a]/tot*100);
     const row=document.createElement('div');row.className='bar';row.innerHTML=`<div class="lb">${la}<b>${a} ${pa}%</b></div><div class="track"><i style="width:${pa}%"></i></div><div class="rb">${lb}<b>${b} ${100-pa}%</b></div>`;bars.appendChild(row);});
+  track('result-'+type,'결과 '+type+' '+r[0]);track('finish','결과까지 완료');
   $('play').hidden=true;$('result').hidden=false;chime();window.scrollTo({top:0,behavior:'smooth'});}
 $('again').addEventListener('click',()=>{Object.keys(SC).forEach(k=>SC[k]=0);QNPCS.forEach(n=>{n.done=false;n.dir='down';});KEEPER.done=false;met=0;gateOpen=false;setGate(false);sc=V;
   Object.assign(pl,{x:START_V[0],y:START_V[1],moving:false,dir:'up'});camSnap=true;hud();$('result').hidden=true;$('play').hidden=false;state='walk';resize();});
@@ -702,7 +704,7 @@ const joyEnd=e=>{if(e.pointerId!==joyId)return;joyId=null;joyVec=null;knob.style
 $('act').addEventListener('pointerdown',e=>{e.preventDefault();action();});
 $('act').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();action();}});
 $('mus').addEventListener('click',()=>{musicOn=!musicOn;if(master)master.gain.value=musicOn?.7:0;$('mus').textContent=musicOn?'♪ 끄기':'♪ 켜기';});
-$('start').addEventListener('click',()=>{initAudio();if(AC&&AC.state!=='running')AC.resume();$('title').hidden=true;$('hud').hidden=false;$('tbtns').hidden=false;hud();state='walk';
+$('start').addEventListener('click',()=>{track('start','게임 시작');initAudio();if(AC&&AC.state!=='running')AC.resume();$('title').hidden=true;$('hud').hidden=false;$('tbtns').hidden=false;hud();state='walk';
   openDialog({name:'',spec:null},[
     {who:'',spec:null,text:'가을걷이가 한창인 어느 고을에 닿았소. 북쪽 성문은 굳게 닫혀 있구려.'},
     {who:'',spec:null,text:'마을 사람 열두 명이 저마다 그대에게 물을 것이 있다 하오. 머리 위에 「!」가 뜬 이를 마주 보고 말을 거시오.'},
@@ -756,5 +758,6 @@ resize();requestAnimationFrame(loop);
 })();
 </script>
 
+<script data-goatcounter="https://koo04812.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>
